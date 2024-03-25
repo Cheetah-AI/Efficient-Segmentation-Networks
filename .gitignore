@@ -2,7 +2,7 @@ __pycache__/
 *.py[cod]
 *.pyc
 *.pyo
-*.pth
+checkpoint
 .idea/
 result/
 server/
