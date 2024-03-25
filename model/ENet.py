@@ -7,6 +7,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torchsummary import summary
+import model.MaxUnpool2dop as unpool2d
 
 __all__ = ["ENet"]
 
@@ -205,7 +206,8 @@ class UpsamplingBottleneck(nn.Module):
                  padding=0,
                  dropout_prob=0.,
                  bias=False,
-                 relu=True):
+                 relu=True,
+                 onnx_friendly=False):
         super().__init__()
 
         internal_channels = in_channels // internal_ratio
@@ -222,7 +224,10 @@ class UpsamplingBottleneck(nn.Module):
 
         # Remember that the stride is the same as the kernel_size, just like
         # the max pooling layers
-        self.main_unpool1 = nn.MaxUnpool2d(kernel_size=2)
+        if onnx_friendly:
+            self.main_unpool1 = unpool2d.MaxUnpool2d(kernel_size=2)
+        else:
+            self.main_unpool1 = nn.MaxUnpool2d(kernel_size=2)
 
         # Extension branch - 1x1 convolution, followed by a regular, dilated or
         # asymmetric convolution, followed by another 1x1 convolution. Number
@@ -272,7 +277,7 @@ class UpsamplingBottleneck(nn.Module):
         return self.out_prelu(out)
 
 class ENet(nn.Module):
-    def __init__(self, classes, encoder_relu=False, decoder_relu=True):
+    def __init__(self, classes, encoder_relu=False, decoder_relu=True, onnx_friendly=False):
         super().__init__()
         # source code
         self.name='BaseLine_ENet_trans'
@@ -361,7 +366,8 @@ class ENet(nn.Module):
 
         # Stage 4 - Decoder
         self.upsample4_0 = UpsamplingBottleneck(
-            128, 64, padding=1, dropout_prob=0.1, relu=decoder_relu)
+            128, 64, padding=1, dropout_prob=0.1, relu=decoder_relu, 
+            onnx_friendly=onnx_friendly)
         self.regular4_1 = RegularBottleneck(
             64, padding=1, dropout_prob=0.1, relu=decoder_relu)
         self.regular4_2 = RegularBottleneck(
@@ -369,7 +375,8 @@ class ENet(nn.Module):
 
         # Stage 5 - Decoder
         self.upsample5_0 = UpsamplingBottleneck(
-            64, 16, padding=1, dropout_prob=0.1, relu=decoder_relu)
+            64, 16, padding=1, dropout_prob=0.1, relu=decoder_relu, 
+            onnx_friendly=onnx_friendly)
         self.regular5_1 = RegularBottleneck(
             16, padding=1, dropout_prob=0.1, relu=decoder_relu)
         self.transposed_conv = nn.ConvTranspose2d(
