@@ -47,12 +47,12 @@ def test(args, test_loader, model):
 
     data_list = []
     for i, (input, label, size, name) in enumerate(test_loader):
+        start_time = time.time()
         with torch.no_grad():
             input_var = input.cuda()
-        start_time = time.time()
-        output = model(input_var)
-        torch.cuda.synchronize()
+            output = model(input_var)
         time_taken = time.time() - start_time
+        # torch.cuda.synchronize()
         print('[%d/%d]  time: %.2f' % (i + 1, total_batches, time_taken))
         output = output.cpu().data[0].numpy()
         gt = np.asarray(label[0].numpy(), dtype=np.uint8)

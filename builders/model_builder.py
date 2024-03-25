@@ -12,6 +12,7 @@ from model.LEDNet import LEDNet
 from model.ESPNet_v2.SegmentationModel import EESPNet_Seg
 from model.ContextNet import ContextNet
 from model.FastSCNN import FastSCNN
+from model.FastSCNNq import FastSCNNq
 from model.DABNet import DABNet
 from model.FSSNet import FSSNet
 from model.FPENet import FPENet
@@ -47,6 +48,8 @@ def build_model(model_name, num_classes):
         return ContextNet(classes=num_classes)
     elif model_name == 'FastSCNN':
         return FastSCNN(classes=num_classes)
+    elif model_name == 'FastSCNNq':
+        return FastSCNNq(classes=num_classes)
     elif model_name == 'DABNet':
         return DABNet(classes=num_classes)
     elif model_name == 'FSSNet':
